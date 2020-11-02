@@ -54,5 +54,7 @@ for place_key, value in places.items():
 #     place.plot(xlabel="", ax=subplot)
 
 
+#TODO: try to use plotly
 #TODO: check for na and remove the series
+
 
