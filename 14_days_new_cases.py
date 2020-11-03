@@ -56,5 +56,5 @@ for place_key, value in places.items():
 
 #TODO: try to use plotly
 #TODO: check for na and remove the series
-
+#TODO: Ontario is aggregating wrong
 
