@@ -4,6 +4,22 @@ import datetime
 from dateutil.parser import parse as parsedate
 import pytz
 import urllib.request
+import sys
+import time
+
+
+def report_hook(count, block_size, total_size):
+    global start_time
+    if count == 0:
+        start_time = time.time()
+        return
+    duration = time.time() - start_time
+    progress_size = int(count * block_size)
+    speed = int(progress_size / (1024 * duration))
+    percent = int(count * block_size * 100 / total_size)
+    sys.stdout.write("\rDonwloading file...%d%%, %d MB, %d KB/s, %d seconds passed" %
+                     (percent, progress_size / (1024 * 1024), speed, duration))
+    sys.stdout.flush()
 
 
 local_file_path = './data/main.csv'
@@ -17,15 +33,15 @@ url_date = parsedate(url_time)
 if os.path.exists(local_file_path):
     file_time = utc.localize(datetime.datetime.fromtimestamp(os.path.getmtime(local_file_path)))
     if url_date > file_time:
-        print('Downloading file...')
-        urllib.request.urlretrieve(remote_file_path, local_file_path)
+        urllib.request.urlretrieve(remote_file_path, local_file_path, report_hook)
     else:
         print('Nothing to download')
         exit()
 else:
-    print('Downloading file...')
     urllib.request.urlretrieve(remote_file_path, local_file_path)
 
+print('')
+print('Converting csv to feather...')
 exec(open('./to_feather.py').read())
 
 

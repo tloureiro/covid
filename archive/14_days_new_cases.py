@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as datetime
 
-df = pd.read_feather('./data/main.feather')
+df = pd.read_feather('../data/main.feather')
 
 places = {
     'Rio de Janeiro': df[(df['subregion2_name'] == 'Rio de Janeiro')],
@@ -52,9 +52,4 @@ for place_key, value in places.items():
 #     subplot.set_title(place_key)
 #
 #     place.plot(xlabel="", ax=subplot)
-
-
-#TODO: try to use plotly
-#TODO: check for na and remove the series
-#TODO: Ontario is aggregating wrong
 
