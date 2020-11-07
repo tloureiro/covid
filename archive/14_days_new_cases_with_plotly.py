@@ -4,7 +4,7 @@ import pandas as pd
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-df = pd.read_feather('../data/main.feather')
+df = pd.read_feather('./data/main.feather')
 
 places = {
     'Rio de Janeiro': df[(df['subregion2_name'] == 'Rio de Janeiro')],
@@ -49,7 +49,7 @@ fig.append_trace(go.Scatter(
     showlegend=False,
 ), row=3, col=1)
 
-fig.update_layout(title_text="New Cases per day")
+fig.update_layout(title_text="New Cases per day   (Total News Cases)/(Total population) ")
 fig.show()
 # fig.write_html('./data/test.html', full_html=False)
 
