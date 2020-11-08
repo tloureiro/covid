@@ -123,6 +123,15 @@ def generate_report_last_report_cases_in_a_day(places):
                 place = places[place_key]
                 last_day = place.loc[place['new_confirmed'].notna()].iloc[-1]
 
+                if place_key == 'World':
+                    last_day = place.loc[place['new_confirmed'].notna()].iloc[-3]
+                elif last_day['new_confirmed'] == 0:
+                    index = -2
+                    while place.loc[place['new_confirmed'].notna()].iloc[index]['new_confirmed'] == 0:
+                        index -= 1
+
+                    last_day = place.loc[place['new_confirmed'].notna()].iloc[index]
+
                 with tag('h2'):
                     text(place_key + ' ' + last_day['date'].strftime('%m-%d'))
                 with tag('h3'):
@@ -152,3 +161,5 @@ generate_report_new_cases_percentage_of_population_infected_per_day(places, days
 generate_report_percentage_of_population_infected(places)
 
 generate_report_last_report_cases_in_a_day(places)
+
+
