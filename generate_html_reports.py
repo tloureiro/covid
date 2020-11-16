@@ -224,7 +224,12 @@ def generate_report_highest_infection_rates_in_highly_populate_places():
         grouped_places[key] = pd.DataFrame(d)
         grouped_places[key].dropna(0, inplace=True)
         grouped_places[key].sort_values('population', inplace=True, ascending=False)
-        grouped_places[key] = grouped_places[key].head(150)
+
+        if key == 'countries':
+            grouped_places[key] = grouped_places[key].head(50)
+        else:
+            grouped_places[key] = grouped_places[key].head(100)
+
         grouped_places[key].sort_values('rate_infected_%', inplace=True, ascending=False)
         grouped_places[key]['position'] = np.arange(len(grouped_places[key])) + 1
 
@@ -238,12 +243,15 @@ def generate_report_highest_infection_rates_in_highly_populate_places():
                 text('Highest Infection Rates In Highly Populated Places (countries, subregion1, subregion2)')
             with tag('h2'):
                 text('Countries:')
+            text('(analysis of the top 50 most populated countries)')
             doc.asis(grouped_places['countries'].to_html())
             with tag('h2'):
                 text('Subregion1 (states, provinces, etc):')
+            text('(analysis of the top 100 most populated regions)')
             doc.asis(grouped_places['sub1'].to_html())
             with tag('h2'):
                 text('Subregion2 (usually cities):')
+            text('(analysis of the top 100 most populated regions)')
             doc.asis(grouped_places['sub2'].to_html())
 
     with open('./site/highest_infection_rates_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
