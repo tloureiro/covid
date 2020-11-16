@@ -1,4 +1,6 @@
 import pandas as pd
+from yattag import Doc
+import numpy as np
 
 
 df = pd.read_feather('./data/time_slice.feather')
@@ -30,7 +32,22 @@ for key, place in places.items():
     grouped_places[key].sort_values('population', inplace=True, ascending=False)
     grouped_places[key] = grouped_places[key].head(150)
     grouped_places[key].sort_values('rate_infected', inplace=True, ascending=False)
+    grouped_places[key]['position'] = np.arange(len(grouped_places[key]))
 
-# instead of doing total_confirmed I could sum last 30 or 60 days
 
+doc, tag, text = Doc().tagtext()
+with tag('html'):
+    with tag('body'):
+        with tag('h1'):
+            text('Highest Infection Rates In Highly Populated Places (countries, subregion1, subregion2)')
+        with tag('h2'):
+            text('Countries:')
+        doc.asis(grouped_places['countries'].to_html())
+        with tag('h2'):
+            text('Subregion1:')
+        doc.asis(grouped_places['sub1'].to_html())
+        with tag('h2'):
+            text('Subregion2:')
+        doc.asis(grouped_places['sub2'].to_html())
 
+print(doc.getvalue())

@@ -136,7 +136,8 @@ def generate_report_percentage_of_population_infected(places):
 
 def generate_report_last_report_cases_in_a_day(places):
     doc, tag, text = Doc().tagtext()
-    row = 1
+
+    doc.asis('<?xml version="1.0" encoding="UTF-8"?>')
 
     with tag('html'):
         with tag('body'):
@@ -166,7 +167,7 @@ def generate_report_last_report_cases_in_a_day(places):
                 doc.stag('br')
                 doc.stag('br')
 
-    with open('./site/last_reported_cases_in_a_day.html', 'w') as writer:
+    with open('./site/last_reported_cases_in_a_day.html', 'w', encoding='utf-8') as writer:
         writer.write(doc.getvalue())
 
 
@@ -196,6 +197,59 @@ def generate_report_total_and_percentage_deceased(places):
     fig.write_html('./site/total_and_percentage_of_population_deceased.html')
 
 
+def generate_report_highest_infection_rates_in_highly_populate_places():
+    df = pd.read_feather('./data/main.feather')
+
+    countries = df.loc[df['aggregation_level'] == 0].groupby(['country_name'])
+    sub1 = df.loc[df['aggregation_level'] == 1].groupby(['subregion1_name'])
+    sub2 = df.loc[df['aggregation_level'] == 2].groupby(['subregion2_name'])
+
+    places = {
+        'countries': countries,
+        'sub1': sub1,
+        'sub2': sub2
+    }
+
+    df = None
+
+    grouped_places = {}
+
+    for key, place in places.items():
+        d = {
+            'total_confirmed': place['total_confirmed'].max(),
+            'population': place['population'].max(),
+            'rate_infected_%': (place['total_confirmed'].max() / place['population'].max()) * 100
+        }
+
+        grouped_places[key] = pd.DataFrame(d)
+        grouped_places[key].dropna(0, inplace=True)
+        grouped_places[key].sort_values('population', inplace=True, ascending=False)
+        grouped_places[key] = grouped_places[key].head(150)
+        grouped_places[key].sort_values('rate_infected_%', inplace=True, ascending=False)
+        grouped_places[key]['position'] = np.arange(len(grouped_places[key])) + 1
+
+    doc, tag, text = Doc().tagtext()
+
+    doc.asis('<?xml version="1.0" encoding="UTF-8"?>')
+
+    with tag('html'):
+        with tag('body'):
+            with tag('h1'):
+                text('Highest Infection Rates In Highly Populated Places (countries, subregion1, subregion2)')
+            with tag('h2'):
+                text('Countries:')
+            doc.asis(grouped_places['countries'].to_html())
+            with tag('h2'):
+                text('Subregion1 (states, provinces, etc):')
+            doc.asis(grouped_places['sub1'].to_html())
+            with tag('h2'):
+                text('Subregion2 (usually cities):')
+            doc.asis(grouped_places['sub2'].to_html())
+
+    with open('./site/highest_infection_rates_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
+        writer.write(doc.getvalue())
+
+
 places = get_places()
 
 generate_report_new_cases_per_day(places, days=30)
@@ -212,6 +266,6 @@ generate_report_total_and_percentage_deceased(places)
 
 generate_report_percentage_of_population_infected(places)
 
+generate_report_highest_infection_rates_in_highly_populate_places()
+
 generate_report_last_report_cases_in_a_day(places)
-
-
