@@ -1,6 +1,7 @@
 import pandas as pd
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+import numpy as np
 import datetime
 from yattag import Doc
 
@@ -30,7 +31,17 @@ def get_places():
         'Japan': df[(df['country_name'] == 'Japan') & (df['aggregation_level'] == 0)],
         'China': df[(df['country_name'] == 'China') & (df['aggregation_level'] == 0)],
         'United States of America': df[(df['country_name'] == 'United States of America') & (df['aggregation_level'] == 0)],
+        'Wisconsin': df[(df['subregion1_name'] == 'Wisconsin') & (df['aggregation_level'] == 1)],
+        'Florida': df[(df['subregion1_name'] == 'Florida') & (df['aggregation_level'] == 1)],
+        'Miami-Dade County': df[(df['subregion2_name'] == 'Miami-Dade County') & (df['aggregation_level'] == 2)],
+        'Brasília': df[(df['subregion2_name'] == 'Brasília') & (df['aggregation_level'] == 2)],
+        'Barcelona': df[(df['subregion2_name'] == 'Barcelona') & (df['aggregation_level'] == 2)],
+        'Belgium': df[(df['country_name'] == 'Belgium') & (df['aggregation_level'] == 0)],
+        'Israel': df[(df['country_name'] == 'Israel') & (df['aggregation_level'] == 0)],
+        'Qatar': df[(df['country_name'] == 'Qatar') & (df['aggregation_level'] == 0)],
     }
+
+    places['Toronto']['population'] = 6197000.00
 
     world = df[df['aggregation_level'] == 0].groupby('date')
     world_dict = {
@@ -38,6 +49,7 @@ def get_places():
         'new_confirmed': world['new_confirmed'].sum(),
         'total_confirmed': world['total_confirmed'].sum(),
         'population': world['population'].sum(),
+        'total_deceased': world['total_deceased'].sum(),
     }
     places['World'] = pd.DataFrame(world_dict)
 
@@ -49,6 +61,7 @@ def get_places():
         places[place_key]['new_confirmed'] = places[place_key]['new_confirmed'].astype(float)
         places[place_key]['total_confirmed'] = places[place_key]['total_confirmed'].astype(float)
         places[place_key]['population'] = places[place_key]['population'].astype(float)
+        places[place_key]['total_deceased'] = places[place_key]['total_deceased'].astype(float)
 
     return places
 
@@ -157,6 +170,32 @@ def generate_report_last_report_cases_in_a_day(places):
         writer.write(doc.getvalue())
 
 
+def generate_report_total_and_percentage_deceased(places):
+    fig = make_subplots(rows=len(places), cols=1, subplot_titles=list(places.keys()))
+
+    row = 1
+    for place_key, value in places.items():
+        place = places[place_key]
+
+        place['percentage_deceased_total'] = (place['total_deceased'] / place['population']) * 100
+
+        fig.add_trace(go.Scatter(
+            x=place['date'],
+            y=place['total_deceased'],
+            customdata=np.dstack((place['percentage_deceased_total'])),
+            hovertemplate='<b>Total Deceased: %{y}</b><br><b>Percentage Deceased: %{text:.3f}%</b>',
+            text=place['percentage_deceased_total'],
+            showlegend=False,
+            marker_color='blue'
+        ), row=row, col=1)
+
+        row += 1
+
+    fig.update_layout(title_text='Total and percentage of population deceased', height=(len(places) * 300))
+    # fig.show()
+    fig.write_html('./site/total_and_percentage_of_population_deceased.html')
+
+
 places = get_places()
 
 generate_report_new_cases_per_day(places, days=30)
@@ -168,6 +207,8 @@ generate_report_new_cases_percentage_of_population_infected_per_day(places, days
 generate_report_new_cases_percentage_of_population_infected_per_day(places, days=90)
 generate_report_new_cases_percentage_of_population_infected_per_day(places, days=180)
 generate_report_new_cases_percentage_of_population_infected_per_day(places, days=999)
+
+generate_report_total_and_percentage_deceased(places)
 
 generate_report_percentage_of_population_infected(places)
 

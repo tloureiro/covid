@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 
 # {
 #     'key': 'string',
@@ -162,3 +163,11 @@ df = pd.read_csv('./data/main.csv',
                  )
 
 df.to_feather('./data/main.feather')
+
+df_time_slice = df.loc[df.date > datetime.datetime.now() - pd.to_timedelta(str(30) + 'day')]
+
+df_time_slice.reset_index(inplace=True)
+
+df_time_slice.to_feather('./data/time_slice.feather')
+
+# df = None
