@@ -200,6 +200,8 @@ def generate_report_total_and_percentage_deceased(places):
 def generate_report_highest_infection_rates_in_highly_populate_places():
     df = pd.read_feather('./data/main.feather')
 
+    df.loc[(df['subregion2_name'] == 'Toronto') & (df['aggregation_level'] == 2), 'population'] = 6197000.00
+
     countries = df.loc[df['aggregation_level'] == 0].groupby(['country_name'])
     sub1 = df.loc[df['aggregation_level'] == 1].groupby(['subregion1_name'])
     sub2 = df.loc[df['aggregation_level'] == 2].groupby(['subregion2_name'])
