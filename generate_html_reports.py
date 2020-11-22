@@ -36,6 +36,8 @@ def get_places():
         'Miami-Dade County': df[(df['subregion2_name'] == 'Miami-Dade County') & (df['aggregation_level'] == 2)],
         'Brasília': df[(df['subregion2_name'] == 'Brasília') & (df['aggregation_level'] == 2)],
         'Barcelona': df[(df['subregion2_name'] == 'Barcelona') & (df['aggregation_level'] == 2)],
+        'Boa Vista': df[(df['subregion2_name'] == 'Boa Vista') & (df['aggregation_level'] == 2)],
+        'Lima': df[(df['subregion2_name'] == 'Lima') & (df['aggregation_level'] == 2)],
         'Belgium': df[(df['country_name'] == 'Belgium') & (df['aggregation_level'] == 0)],
         'Israel': df[(df['country_name'] == 'Israel') & (df['aggregation_level'] == 0)],
         'Qatar': df[(df['country_name'] == 'Qatar') & (df['aggregation_level'] == 0)],
@@ -228,9 +230,9 @@ def generate_report_highest_infection_rates_in_highly_populate_places():
         grouped_places[key].sort_values('population', inplace=True, ascending=False)
 
         if key == 'countries':
-            grouped_places[key] = grouped_places[key].head(50)
+            grouped_places[key] = grouped_places[key].head(100)
         else:
-            grouped_places[key] = grouped_places[key].head(200)
+            grouped_places[key] = grouped_places[key].head(1000)
 
         grouped_places[key].sort_values('rate_infected_%', inplace=True, ascending=False)
         grouped_places[key]['position'] = np.arange(len(grouped_places[key])) + 1
@@ -245,15 +247,15 @@ def generate_report_highest_infection_rates_in_highly_populate_places():
                 text('Highest Infection Rates In Highly Populated Places (countries, subregion1, subregion2)')
             with tag('h2'):
                 text('Countries:')
-            text('(analysis of the top 50 most populated countries)')
+            text('(analysis of the top 100 most populated countries)')
             doc.asis(grouped_places['countries'].to_html())
             with tag('h2'):
                 text('Subregion1 (states, provinces, etc):')
-            text('(analysis of the top 200 most populated regions)')
+            text('(analysis of the top 1000 most populated regions)')
             doc.asis(grouped_places['sub1'].to_html())
             with tag('h2'):
                 text('Subregion2 (usually cities):')
-            text('(analysis of the top 200 most populated regions)')
+            text('(analysis of the top 1000 most populated regions)')
             doc.asis(grouped_places['sub2'].to_html())
 
     with open('./site/highest_infection_rates_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
