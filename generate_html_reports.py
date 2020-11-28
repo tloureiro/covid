@@ -4,6 +4,9 @@ import plotly.graph_objects as go
 import numpy as np
 import datetime
 from yattag import Doc
+import plotly.figure_factory as ff
+
+
 
 
 def get_places():
@@ -232,7 +235,7 @@ def generate_report_highest_infection_rates_in_highly_populate_places():
         if key == 'countries':
             grouped_places[key] = grouped_places[key].head(100)
         else:
-            grouped_places[key] = grouped_places[key].head(1000)
+            grouped_places[key] = grouped_places[key].head(2000)
 
         grouped_places[key].sort_values('rate_infected_%', inplace=True, ascending=False)
         grouped_places[key]['position'] = np.arange(len(grouped_places[key])) + 1
@@ -251,15 +254,48 @@ def generate_report_highest_infection_rates_in_highly_populate_places():
             doc.asis(grouped_places['countries'].to_html())
             with tag('h2'):
                 text('Subregion1 (states, provinces, etc):')
-            text('(analysis of the top 1000 most populated regions)')
+            text('(analysis of the top 2000 most populated regions)')
             doc.asis(grouped_places['sub1'].to_html())
             with tag('h2'):
                 text('Subregion2 (usually cities):')
-            text('(analysis of the top 1000 most populated regions)')
+            text('(analysis of the top 2000 most populated regions)')
             doc.asis(grouped_places['sub2'].to_html())
 
     with open('./site/highest_infection_rates_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
         writer.write(doc.getvalue())
+
+    return grouped_places
+
+
+def generate_report_distribution_highest_infection_rates_in_highly_populate_places(grouped_places):
+
+    fig = make_subplots(rows=3, cols=1, subplot_titles=['Distribution of infection rates for countries with highest cases',
+                                                        'Distribution of infection rates for subregion1\'s with highest cases',
+                                                        'Distribution of infection rates for subregion2\'s with highest cases'])
+
+    countries_rate_infected = grouped_places['countries']['rate_infected_%']
+    sub1_rate_infected = grouped_places['sub1']['rate_infected_%']
+    sub2_rate_infected = grouped_places['sub2']['rate_infected_%']
+
+    fig.add_trace(go.Histogram(x=countries_rate_infected, xbins=dict(
+        start=countries_rate_infected.min(),
+        end=countries_rate_infected.max(),
+        size=0.25
+    ),), row=1, col=1)
+
+    fig.add_trace(go.Histogram(x=sub1_rate_infected, xbins=dict(
+        start=sub1_rate_infected.min(),
+        end=sub1_rate_infected.max(),
+        size=0.25
+    ),), row=2, col=1)
+
+    fig.add_trace(go.Histogram(x=sub2_rate_infected, xbins=dict(
+        start=sub2_rate_infected.min(),
+        end=sub2_rate_infected.max(),
+        size=0.25
+    ),), row=3, col=1)
+
+    fig.write_html('./site/distribution_of_highest_infection_rates_in_highly_populate_places.html')
 
 
 places = get_places()
@@ -278,6 +314,8 @@ generate_report_total_and_percentage_deceased(places)
 
 generate_report_percentage_of_population_infected(places)
 
-generate_report_highest_infection_rates_in_highly_populate_places()
+grouped_places = generate_report_highest_infection_rates_in_highly_populate_places()
+generate_report_distribution_highest_infection_rates_in_highly_populate_places(grouped_places)
 
 generate_report_last_report_cases_in_a_day(places)
+
