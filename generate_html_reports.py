@@ -1,12 +1,10 @@
-import pandas as pd
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
-import numpy as np
 import datetime
+
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from yattag import Doc
-import plotly.figure_factory as ff
-
-
 
 
 def get_places():
@@ -151,7 +149,11 @@ def generate_report_last_report_cases_in_a_day(places):
 
             for place_key, value in places.items():
                 place = places[place_key]
-                last_day = place.loc[place['new_confirmed'].notna()].iloc[-1]
+
+                if place.loc[place['new_confirmed'].notna()].shape[0] == 0:
+                    continue
+                else:
+                    last_day = place.loc[place['new_confirmed'].notna()].iloc[-1]
 
                 if place_key == 'World':
                     last_day = place.loc[place['new_confirmed'].notna()].iloc[-3]
