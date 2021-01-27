@@ -42,6 +42,9 @@ def get_places():
         'Belgium': df[(df['country_name'] == 'Belgium') & (df['aggregation_level'] == 0)],
         'Israel': df[(df['country_name'] == 'Israel') & (df['aggregation_level'] == 0)],
         'Qatar': df[(df['country_name'] == 'Qatar') & (df['aggregation_level'] == 0)],
+        'Jerusalem District': df[(df['subregion1_name'] == 'Jerusalem District') & (df['aggregation_level'] == 1)],
+        'Tel Aviv District': df[(df['subregion1_name'] == 'Tel Aviv District') & (df['aggregation_level'] == 1)],
+        'Haifa District': df[(df['subregion1_name'] == 'Haifa District') & (df['aggregation_level'] == 1)],
     }
 
     places['Toronto']['population'] = 6197000.00
@@ -50,6 +53,7 @@ def get_places():
     world_dict = {
         'date': world['date'].unique().index,
         'new_confirmed': world['new_confirmed'].sum(),
+        'new_deceased': world['new_deceased'].sum(),
         'total_confirmed': world['total_confirmed'].sum(),
         'population': world['population'].sum(),
         'total_deceased': world['total_deceased'].sum(),
@@ -62,6 +66,7 @@ def get_places():
     # temporary fix because of pandas bug to deal with ints and na's
     for place_key, value in places.items():
         places[place_key]['new_confirmed'] = places[place_key]['new_confirmed'].astype(float)
+        places[place_key]['new_deceased'] = places[place_key]['new_deceased'].astype(float)
         places[place_key]['total_confirmed'] = places[place_key]['total_confirmed'].astype(float)
         places[place_key]['population'] = places[place_key]['population'].astype(float)
         places[place_key]['total_deceased'] = places[place_key]['total_deceased'].astype(float)
@@ -113,6 +118,30 @@ def generate_report_new_cases_percentage_of_population_infected_per_day(places, 
     fig.update_layout(title_text='Percentage of population infected per day in the last ' + str(days) + ' days', height=(len(places) * 300))
     # fig.show()
     fig.write_html('./site/new_cases_percentage_of_population_infected_per_day_' + str(days) + '.html')
+
+
+def generate_report_percentage_of_population_deceased_per_day(places, days):
+    fig = make_subplots(rows=len(places), cols=1, subplot_titles=list(places.keys()))
+
+    row = 1
+    for place_key, value in places.items():
+        place = places[place_key]
+        place_slice = place[place.date > datetime.datetime.now() - pd.to_timedelta(str(days) + 'day')]
+
+        place_slice['percentage_deceased'] = (place_slice['new_deceased'] / place_slice['population']) * 100
+
+        fig.append_trace(go.Scatter(
+            x=place_slice['date'],
+            y=place_slice['percentage_deceased'],
+            showlegend=False,
+            marker_color='blue'
+        ), row=row, col=1)
+
+        row += 1
+
+    fig.update_layout(title_text='Percentage of population infected per day in the last ' + str(days) + ' days', height=(len(places) * 300))
+    # fig.show()
+    fig.write_html('./site/percentage_of_population_deceased_per_day_' + str(days) + '.html')
 
 
 def generate_report_percentage_of_population_infected(places):
@@ -311,6 +340,11 @@ generate_report_new_cases_percentage_of_population_infected_per_day(places, days
 generate_report_new_cases_percentage_of_population_infected_per_day(places, days=90)
 generate_report_new_cases_percentage_of_population_infected_per_day(places, days=180)
 generate_report_new_cases_percentage_of_population_infected_per_day(places, days=999)
+
+generate_report_percentage_of_population_deceased_per_day(places, days=30)
+generate_report_percentage_of_population_deceased_per_day(places, days=90)
+generate_report_percentage_of_population_deceased_per_day(places, days=180)
+generate_report_percentage_of_population_deceased_per_day(places, days=999)
 
 generate_report_total_and_percentage_deceased(places)
 
