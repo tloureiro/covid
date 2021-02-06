@@ -158,6 +158,7 @@ df = pd.read_csv('./data/main.csv',
                      'population_age_80_89': pd.Int32Dtype(),
                      'population_age_90_99': pd.Int32Dtype(),
                      'population_age_80_and_older': pd.Int32Dtype(),
+                     'area': 'string',
                  },
                  parse_dates=['date']
                  )
