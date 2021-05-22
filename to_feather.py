@@ -161,7 +161,8 @@ df = pd.read_csv('./data/main.csv',
                      'area': 'string',
                      'noaa_station': 'string',
                  },
-                 parse_dates=['date']
+                 parse_dates=['date'],
+                 usecols=['country_name', 'subregion1_name', 'subregion2_name', 'aggregation_level', 'population', 'date', 'new_confirmed', 'new_deceased', 'total_confirmed', 'total_deceased' ]
                  )
 
 df.to_feather('./data/main.feather')
