@@ -234,7 +234,7 @@ def generate_report_total_and_percentage_deceased(places):
     fig.write_html('./site/total_and_percentage_of_population_deceased.html')
 
 
-def generate_report_highest_infection_and_mortality_rates_in_highly_populate_places():
+def generate_ranking_reports():
     df = pd.read_feather('./data/main.feather')
 
     df.loc[(df['subregion2_name'] == 'Toronto') & (df['aggregation_level'] == 2), 'population'] = 6197000.00
@@ -253,13 +253,15 @@ def generate_report_highest_infection_and_mortality_rates_in_highly_populate_pla
 
     grouped_places = {}
 
+    # first infections
     for key, place in places.items():
         d = {
             'total_confirmed': place['total_confirmed'].max(),
             'total_deceased': place['total_deceased'].max(),
             'population': place['population'].max(),
             'rate_infected_%': (place['total_confirmed'].max() / place['population'].max()) * 100,
-            'rate_mortality_%': (place['total_deceased'].max() / place['population'].max()) * 100
+            'rate_mortality_%': (place['total_deceased'].max() / place['population'].max()) * 100,
+            'rate_mortality_by_infected_%': (place['total_deceased'].max() / place['total_confirmed'].max()) * 100,
         }
 
         grouped_places[key] = pd.DataFrame(d)
@@ -271,7 +273,6 @@ def generate_report_highest_infection_and_mortality_rates_in_highly_populate_pla
         else:
             grouped_places[key] = grouped_places[key].head(1000)
 
-        # first infections
         grouped_places[key].sort_values('rate_infected_%', inplace=True, ascending=False)
         grouped_places[key]['position'] = np.arange(len(grouped_places[key])) + 1
 
@@ -286,24 +287,24 @@ def generate_report_highest_infection_and_mortality_rates_in_highly_populate_pla
             with tag('h2'):
                 text('Countries:')
             text('(analysis of the top 100 most populated countries)')
-            doc.asis(grouped_places['countries'].drop(['rate_mortality_%', 'total_deceased'], axis=1).to_html())
+            doc.asis(grouped_places['countries'].drop(['rate_mortality_%', 'total_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
             with tag('h2'):
                 text('Subregion1 (states, provinces, etc):')
             text('(analysis of the top 1000 most populated regions)')
-            doc.asis(grouped_places['sub1'].drop(['rate_mortality_%', 'total_deceased'], axis=1).to_html())
+            doc.asis(grouped_places['sub1'].drop(['rate_mortality_%', 'total_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
             with tag('h2'):
                 text('Subregion2 (usually cities):')
             text('(analysis of the top 1000 most populated regions)')
-            doc.asis(grouped_places['sub2'].drop(['rate_mortality_%', 'total_deceased'], axis=1).to_html())
+            doc.asis(grouped_places['sub2'].drop(['rate_mortality_%', 'total_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
 
     with open('./site/highest_infection_rates_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
         writer.write(doc.getvalue())
 
+    # now mortality
     for key, place in places.items():
         grouped_places[key].sort_values('rate_mortality_%', inplace=True, ascending=False)
         grouped_places[key]['position'] = np.arange(len(grouped_places[key])) + 1
 
-    # now mortality
     doc, tag, text = Doc().tagtext()
 
     doc.asis('<?xml version="1.0" encoding="UTF-8"?>')
@@ -315,17 +316,46 @@ def generate_report_highest_infection_and_mortality_rates_in_highly_populate_pla
             with tag('h2'):
                 text('Countries:')
             text('(analysis of the top 100 most populated countries)')
-            doc.asis(grouped_places['countries'].drop(['rate_infected_%', 'total_confirmed'], axis=1).to_html())
+            doc.asis(grouped_places['countries'].drop(['rate_infected_%', 'total_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
             with tag('h2'):
                 text('Subregion1 (states, provinces, etc):')
             text('(analysis of the top 1000 most populated regions)')
-            doc.asis(grouped_places['sub1'].drop(['rate_infected_%', 'total_confirmed'], axis=1).to_html())
+            doc.asis(grouped_places['sub1'].drop(['rate_infected_%', 'total_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
             with tag('h2'):
                 text('Subregion2 (usually cities):')
             text('(analysis of the top 1000 most populated regions)')
-            doc.asis(grouped_places['sub2'].drop(['rate_infected_%', 'total_confirmed'], axis=1).to_html())
+            doc.asis(grouped_places['sub2'].drop(['rate_infected_%', 'total_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
 
     with open('./site/highest_mortality_rates_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
+        writer.write(doc.getvalue())
+
+    # now mortality by infections
+    for key, place in places.items():
+        grouped_places[key].sort_values('rate_mortality_by_infected_%', inplace=True, ascending=False)
+        grouped_places[key]['position'] = np.arange(len(grouped_places[key])) + 1
+
+    doc, tag, text = Doc().tagtext()
+
+    doc.asis('<?xml version="1.0" encoding="UTF-8"?>')
+
+    with tag('html'):
+        with tag('body'):
+            with tag('h1'):
+                text('Highest Mortality By Infection Rate In Highly Populated Places (countries, subregion1, subregion2)')
+            with tag('h2'):
+                text('Countries:')
+            text('(analysis of the top 100 most populated countries)')
+            doc.asis(grouped_places['countries'].drop(['rate_infected_%', 'rate_mortality_%'], axis=1).to_html())
+            with tag('h2'):
+                text('Subregion1 (states, provinces, etc):')
+            text('(analysis of the top 1000 most populated regions)')
+            doc.asis(grouped_places['sub1'].drop(['rate_infected_%', 'rate_mortality_%'], axis=1).to_html())
+            with tag('h2'):
+                text('Subregion2 (usually cities):')
+            text('(analysis of the top 1000 most populated regions)')
+            doc.asis(grouped_places['sub2'].drop(['rate_infected_%', 'rate_mortality_%'], axis=1).to_html())
+
+    with open('./site/highest_mortality_by_infected_rate_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
         writer.write(doc.getvalue())
 
     return grouped_places
@@ -383,7 +413,7 @@ generate_report_total_and_percentage_deceased(places)
 
 generate_report_percentage_of_population_infected(places)
 
-grouped_places = generate_report_highest_infection_and_mortality_rates_in_highly_populate_places()
+grouped_places = generate_ranking_reports()
 generate_report_distribution_highest_infection_rates_in_highly_populate_places(grouped_places)
 
 generate_report_last_report_cases_in_a_day(places)
