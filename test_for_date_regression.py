@@ -7,16 +7,16 @@ import matplotlib.pyplot as plt
 today = datetime.date.today()
 
 data = {
-    'Days': [today - datetime.timedelta(days=5), today - datetime.timedelta(days=4), today - datetime.timedelta(days=3), today - datetime.timedelta(days=2), today - datetime.timedelta(days=1)],
-    'Cases': [10, 20, 80, 85, 85]
+    'Dates': [today - datetime.timedelta(days=10), today - datetime.timedelta(days=5), today - datetime.timedelta(days=3), today - datetime.timedelta(days=2), today - datetime.timedelta(days=1)],
+    'Vaccines': [10, 20, 80, 85, 85]
 }
 
 df = pd.DataFrame(data=data)
 
-df['Days'] = df['Days'].map(datetime.datetime.toordinal)
+days_ordinal = df['Dates'].map(datetime.datetime.toordinal)
 
-x = df['Days'].values.reshape(-1, 1)
-y = df['Cases'].values.reshape(-1, 1)
+x = days_ordinal.values.reshape(-1, 1)
+y = df['Vaccines'].values.reshape(-1, 1)
 
 linear_regressor = LinearRegression()
 linear_regressor.fit(x, y)
@@ -24,6 +24,7 @@ linear_regressor.fit(x, y)
 y_pred = linear_regressor.predict(x)
 
 plt.scatter(x, y)
+plt.xticks(x, [item.strftime('%d %b') for item in df['Dates'].to_list()])
 plt.plot(x, y_pred, color='red')
 plt.show()
 
