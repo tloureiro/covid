@@ -162,8 +162,15 @@ df = pd.read_csv('./data/main.csv',
                      'noaa_station': 'string',
                  },
                  parse_dates=['date'],
-                 usecols=['country_name', 'subregion1_name', 'subregion2_name', 'aggregation_level', 'population', 'date', 'new_confirmed', 'new_deceased', 'total_confirmed', 'total_deceased' ]
+                 usecols=['key', 'country_name', 'subregion1_name', 'subregion2_name', 'aggregation_level', 'population', 'date', 'new_confirmed', 'new_deceased', 'total_confirmed', 'total_deceased']
                  )
+
+df_vaccinations = pd.read_csv('./data/vaccinations.csv',
+                 usecols=['date', 'key', 'total_vaccine_doses_administered', 'total_vaccine_doses_administered_janssen'],
+                 parse_dates=['date'],
+                 )
+
+df = df.merge(df_vaccinations, on=['key', 'date'])
 
 df.to_feather('./data/main.feather')
 
@@ -172,5 +179,3 @@ df_time_slice = df.loc[df.date > datetime.datetime.now() - pd.to_timedelta(str(3
 df_time_slice.reset_index(inplace=True)
 
 df_time_slice.to_feather('./data/time_slice.feather')
-
-# df = None

@@ -5,6 +5,18 @@ from sklearn.linear_model import LinearRegression
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
+
+def predict_date_based_on_vaccines(linear_regressor, future_vaccine_quantities):
+    dates = []
+    dates_ordinal = []
+
+    for future_vaccine_quantity in future_vaccine_quantities:
+        predicted_date = (future_vaccine_quantity - linear_regressor.intercept_) / linear_regressor.coef_
+        dates_ordinal.append(round(predicted_date[0][0]))
+        dates.append(datetime.datetime.fromordinal(round(predicted_date[0][0])))
+    return dates, dates_ordinal
+
+
 today = datetime.date.today()
 
 data = {
@@ -13,8 +25,13 @@ data = {
               today - datetime.timedelta(days=1)],
     'Vaccines': [10, 20, 80, 85, 85]
 }
+future_vaccine_quantities = [200, 500, 700]
+future_vaccine_quantities_labels = ['10%', '20%', '30%']
 
-df = pd.DataFrame(data=data)
+df = pd.read_feather('./data/main.feather')
+
+
+# df = pd.DataFrame(data=data)
 
 days_ordinal = df['Dates'].map(datetime.datetime.toordinal)
 
@@ -26,8 +43,7 @@ linear_regressor.fit(x, y)
 
 y_pred = linear_regressor.predict(x)
 
-#TODO predict points
-
+predicted_dates, predicted_dates_ordinal = predict_date_based_on_vaccines(linear_regressor, future_vaccine_quantities)
 
 fig = make_subplots(rows=1, cols=1, subplot_titles='Test')
 
@@ -41,12 +57,20 @@ fig.add_scatter(
 )
 
 # predictions (points)
-
+fig.add_scatter(
+    x=predicted_dates_ordinal,
+    y=future_vaccine_quantities,
+    mode='markers+text',
+    showlegend=False,
+    marker_color='red',
+    textposition='top center',
+    text=future_vaccine_quantities_labels
+)
 
 # prediction line # TODO ? MAX MIN X Y to reduce to 2 points? points = predictions + known appended
 fig.add_trace(
-    go.Scatter(x=x.flatten().tolist(),
-               y=y_pred.flatten().tolist(),
+    go.Scatter(x=x.flatten().tolist() + predicted_dates_ordinal,
+               y=y_pred.flatten().tolist() + future_vaccine_quantities,
                mode="lines",
                showlegend=False)
 )
@@ -55,31 +79,9 @@ fig.add_trace(
 fig.update_layout(
     xaxis={
         'tickmode': 'array',
-        'tickvals': x.flatten().tolist(),
-        'ticktext': [item.strftime('%d %b') for item in df['Dates'].to_list()], #x to date string?
+        'tickvals': x.flatten().tolist() + predicted_dates_ordinal,
+        'ticktext': [item.strftime('%d %b') for item in df['Dates'].to_list() + predicted_dates],
     },
 )
 
-fig.add_scatter(
-    x=[737943],
-    y=[80],
-    mode='markers+text',
-    textposition='top center',
-    showlegend=False,
-    marker_color='red',
-    text='My label'
-)
-
-# 20, 30, 40, 50, 60, 70, 80, 90, 100 fully
-# predict them, add them to x
-
 fig.show()
-
-# plt.scatter(x, y)
-# plt.xticks(x, [item.strftime('%d %b') for item in df['Dates'].to_list()])
-# plt.plot(x, y_pred, color='red')
-# plt.show()
-
-
-# one day after
-linear_regressor.predict([[737941]])
