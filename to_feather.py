@@ -170,7 +170,7 @@ df_vaccinations = pd.read_csv('./data/vaccinations.csv',
                  parse_dates=['date'],
                  )
 
-df = df.merge(df_vaccinations, on=['key', 'date'])
+df = df.merge(df_vaccinations, how='left', on=['key', 'date'])
 
 df.to_feather('./data/main.feather')
 

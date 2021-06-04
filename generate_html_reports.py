@@ -216,6 +216,8 @@ def generate_report_total_and_percentage_deceased(places):
         place = places[place_key]
 
         place['percentage_deceased_total'] = (place['total_deceased'] / place['population']) * 100
+        print(place_key)
+        print(place['percentage_deceased_total'])
 
         fig.add_trace(go.Scatter(
             x=place['date'],
@@ -392,29 +394,30 @@ def generate_report_distribution_highest_infection_rates_in_highly_populate_plac
     fig.write_html('./site/distribution_of_highest_infection_rates_in_highly_populate_places.html')
 
 
-places = get_places()
+if __name__ == "__main__" :
+    places = get_places()
 
-generate_report_new_cases_per_day(places, days=30)
-generate_report_new_cases_per_day(places, days=90)
-generate_report_new_cases_per_day(places, days=180)
-generate_report_new_cases_per_day(places, days=999)
+    generate_report_new_cases_per_day(places, days=30)
+    generate_report_new_cases_per_day(places, days=90)
+    generate_report_new_cases_per_day(places, days=180)
+    generate_report_new_cases_per_day(places, days=999)
 
-generate_report_new_cases_percentage_of_population_infected_per_day(places, days=30)
-generate_report_new_cases_percentage_of_population_infected_per_day(places, days=90)
-generate_report_new_cases_percentage_of_population_infected_per_day(places, days=180)
-generate_report_new_cases_percentage_of_population_infected_per_day(places, days=999)
+    generate_report_new_cases_percentage_of_population_infected_per_day(places, days=30)
+    generate_report_new_cases_percentage_of_population_infected_per_day(places, days=90)
+    generate_report_new_cases_percentage_of_population_infected_per_day(places, days=180)
+    generate_report_new_cases_percentage_of_population_infected_per_day(places, days=999)
 
-generate_report_percentage_of_population_deceased_per_day(places, days=30)
-generate_report_percentage_of_population_deceased_per_day(places, days=90)
-generate_report_percentage_of_population_deceased_per_day(places, days=180)
-generate_report_percentage_of_population_deceased_per_day(places, days=999)
+    generate_report_percentage_of_population_deceased_per_day(places, days=30)
+    generate_report_percentage_of_population_deceased_per_day(places, days=90)
+    generate_report_percentage_of_population_deceased_per_day(places, days=180)
+    generate_report_percentage_of_population_deceased_per_day(places, days=999)
 
-generate_report_total_and_percentage_deceased(places)
+    generate_report_total_and_percentage_deceased(places)
 
-generate_report_percentage_of_population_infected(places)
+    generate_report_percentage_of_population_infected(places)
 
-grouped_places = generate_ranking_reports()
-generate_report_distribution_highest_infection_rates_in_highly_populate_places(grouped_places)
+    grouped_places = generate_ranking_reports()
+    generate_report_distribution_highest_infection_rates_in_highly_populate_places(grouped_places)
 
-generate_report_last_report_cases_in_a_day(places)
+    generate_report_last_report_cases_in_a_day(places)
 
