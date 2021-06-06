@@ -49,8 +49,9 @@ place = place.loc[place.date > datetime.datetime.now() - pd.to_timedelta(str(30)
 
 place.dropna(subset=['total_vaccine_doses_administered'], inplace=True)
 
-days_ordinal = place['date'].map(datetime.datetime.toordinal)
-place['total_vaccines'] = place['total_vaccine_doses_administered'] + place['total_vaccine_doses_administered_janssen'].fillna(0)
+days_ordinal = place['date'].map(datetime.datetime.toordinal).values.reshape(-1, 1)
+total_vaccines = (place['total_vaccine_doses_administered'] + place['total_vaccine_doses_administered_janssen'].fillna(0)).values.reshape(-1, 1)
+
 population_above_10 = (int(place['population_age_10_19'].iloc[-1]) +  int(place['population_age_20_29'].iloc[-1]) +
     int(place['population_age_30_39'].iloc[-1]) + int(place['population_age_40_49'].iloc[-1]) + int(place['population_age_50_59'].iloc[-1]) +
     int(place['population_age_60_69'].iloc[-1]) + int(place['population_age_70_79'].iloc[-1]) + int(place['population_age_80_and_older'].iloc[-1]) +
@@ -59,63 +60,62 @@ population_above_10 = (int(place['population_age_10_19'].iloc[-1]) +  int(place[
 # population = int(place['population'].iloc[-1])
 population = population_above_10
 
-future_vaccine_quantities = [(population * 2 * 0.4), (population * 2 * 0.5), (population * 2 * 0.6), (population * 2 * 0.7), (population * 2 * 0.8), (population * 2 * 0.9), (population * 2)]
-future_vaccine_quantities_labels = ['40%', '50%', '60%', '70%', '80%', '90%', '100%']
+population_coverage_milestones = [0, (population * 0.1), (population * 0.2), (population * 0.3), (population * 0.4), (population * 0.5), (population * 0.6), (population * 0.7), (population * 0.8), (population * 0.9), population]
+population_coverage_milestones_labels = ['0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
 
-x = days_ordinal.values.reshape(-1, 1)
-y = place['total_vaccines'].values.reshape(-1, 1)
 total_persons_vaccinated = place['total_persons_vaccinated'].values.reshape(-1, 1)
 total_persons_fully_vaccinated = place['total_persons_fully_vaccinated'].values.reshape(-1, 1)
 
+# predicting vaccination for 2 doses
 linear_regressor = LinearRegression()
-linear_regressor.fit(x, y)
+linear_regressor.fit(days_ordinal, (total_vaccines/2))
 
-y_pred = linear_regressor.predict(x)
+total_vaccines_prediction = linear_regressor.predict(days_ordinal)
 
-predicted_dates, predicted_dates_ordinal = predict_date_based_on_vaccines(linear_regressor, future_vaccine_quantities)
+predicted_dates, predicted_dates_ordinal = predict_date_based_on_vaccines(linear_regressor, population_coverage_milestones)
 
-fig = make_subplots(rows=1, cols=1, subplot_titles='Test')
+fig = make_subplots(rows=1, cols=1, subplot_titles=['Vaccination Coverage / Forecast'])
 
 # what we know (points)
 fig.add_scatter(
-    x=x.flatten().tolist(),
-    y=y.flatten().tolist(),
+    x=days_ordinal.flatten().tolist(),
+    y=total_vaccines.flatten().tolist(),
     mode='markers',
-    showlegend=False,
-    marker_color='black'
+    name='Total Vaccines Administered',
+    marker_color='black',
 )
 
 # predictions (points)
 fig.add_scatter(
     x=predicted_dates_ordinal,
-    y=future_vaccine_quantities,
-    mode='markers+text',
+    y=population_coverage_milestones,
+    mode='text',
     showlegend=False,
     marker_color='red',
     textposition='top center',
-    text=future_vaccine_quantities_labels
+    text=population_coverage_milestones_labels
 )
 
-# prediction line # TODO ? MAX MIN X Y to reduce to 2 points? points = predictions + known appended
+# prediction line
 fig.add_trace(
-    go.Scatter(x=x.flatten().tolist() + predicted_dates_ordinal,
-               y=y_pred.flatten().tolist() + future_vaccine_quantities,
-               mode="lines",
-               showlegend=False)
+    go.Scatter(x=days_ordinal.flatten().tolist() + predicted_dates_ordinal,
+               y=total_vaccines_prediction.flatten().tolist() + population_coverage_milestones,
+               mode='lines',
+               name='Full vaccination prediction for population above 10')
 )
 
 fig.add_trace(
-    go.Scatter(x=x.flatten().tolist(),
+    go.Scatter(x=days_ordinal.flatten().tolist(),
                y=total_persons_fully_vaccinated.flatten().tolist(),
-               mode="lines",
-               showlegend=True)
+               name='Total Persons Fully Vaccinated',
+               mode="lines")
 )
 
 fig.add_trace(
-    go.Scatter(x=x.flatten().tolist(),
+    go.Scatter(x=days_ordinal.flatten().tolist(),
                y=total_persons_vaccinated.flatten().tolist(),
-               mode="lines",
-               showlegend=True)
+               name='Total Persons Vaccinated',
+               mode="lines")
 )
 
 
@@ -123,9 +123,8 @@ fig.add_trace(
 fig.update_layout(
     xaxis={
         'tickmode': 'array',
-        'tickvals': x.flatten().tolist() + predicted_dates_ordinal,
-        # 'ticktext': [(item.strftime('%d %b') if item else '') for item in [None for d in place['date']] + predicted_dates],
-        'ticktext': [item.strftime('%d %b') for item in place['date'].tolist() + predicted_dates],
+        'tickvals': days_ordinal.flatten().tolist() + predicted_dates_ordinal,
+        'ticktext': [item.strftime('%d %b') if item else '' for item in ['' for i in place['date'].tolist()] + predicted_dates],
     },
 )
 

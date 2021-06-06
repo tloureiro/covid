@@ -112,6 +112,14 @@ import datetime
 #     'relative_humidity': 'string'
 # }
 
+# vaccinations.csv
+# date,key,new_persons_vaccinated,total_persons_vaccinated,new_persons_fully_vaccinated,total_persons_fully_vaccinated,new_vaccine_doses_administered,
+# total_vaccine_doses_administered,new_persons_vaccinated_pfizer,total_persons_vaccinated_pfizer,new_persons_fully_vaccinated_pfizer,total_persons_fully_vaccinated_pfizer,
+# new_vaccine_doses_administered_pfizer,total_vaccine_doses_administered_pfizer,new_persons_vaccinated_moderna,total_persons_vaccinated_moderna,
+# new_persons_fully_vaccinated_moderna,total_persons_fully_vaccinated_moderna,new_vaccine_doses_administered_moderna,total_vaccine_doses_administered_moderna,
+# new_persons_vaccinated_janssen,total_persons_vaccinated_janssen,new_persons_fully_vaccinated_janssen,total_persons_fully_vaccinated_janssen,
+# new_vaccine_doses_administered_janssen,total_vaccine_doses_administered_janssen
+
 df = pd.read_csv('./data/main.csv',
                  dtype={
                      'wikidata': 'string',
@@ -162,11 +170,11 @@ df = pd.read_csv('./data/main.csv',
                      'noaa_station': 'string',
                  },
                  parse_dates=['date'],
-                 usecols=['key', 'country_name', 'subregion1_name', 'subregion2_name', 'aggregation_level', 'population', 'date', 'new_confirmed', 'new_deceased', 'total_confirmed', 'total_deceased']
+                 usecols=['key', 'country_name', 'subregion1_name', 'subregion2_name', 'aggregation_level', 'population', 'population_age_10_19', 'population_age_20_29', 'population_age_30_39', 'population_age_40_49', 'population_age_50_59', 'population_age_60_69', 'population_age_70_79', 'population_age_80_and_older', 'date', 'new_confirmed', 'new_deceased', 'total_confirmed', 'total_deceased']
                  )
 
 df_vaccinations = pd.read_csv('./data/vaccinations.csv',
-                 usecols=['date', 'key', 'total_vaccine_doses_administered', 'total_vaccine_doses_administered_janssen'],
+                 usecols=['date', 'key', 'total_persons_vaccinated', 'total_persons_fully_vaccinated', 'total_vaccine_doses_administered', 'total_vaccine_doses_administered_janssen'],
                  parse_dates=['date'],
                  )
 
