@@ -47,6 +47,7 @@ def get_places():
         'Tel Aviv District': df[(df['subregion1_name'] == 'Tel Aviv District') & (df['aggregation_level'] == 1)],
         'Haifa District': df[(df['subregion1_name'] == 'Haifa District') & (df['aggregation_level'] == 1)],
         'Cook County': df[(df['subregion2_name'] == 'Cook County') & (df['subregion1_name'] == 'Illinois') & (df['aggregation_level'] == 2)],
+        'United Kingdom': df[(df['country_name'] == 'United Kingdom') & (df['aggregation_level'] == 0)],
     }
 
     places['Toronto']['population'] = 6197000.00
