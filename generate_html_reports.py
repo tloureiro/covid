@@ -87,8 +87,10 @@ def predict_date_based_on_vaccines(linear_regressor, future_vaccine_quantities):
 
     for future_vaccine_quantity in future_vaccine_quantities:
         predicted_date = (future_vaccine_quantity - linear_regressor.intercept_) / linear_regressor.coef_
-        dates_ordinal.append(round(predicted_date[0][0]))
-        dates.append(datetime.datetime.fromordinal(round(predicted_date[0][0])))
+
+        if float(predicted_date[0][0]) != float('-inf') and float(predicted_date[0][0]) != float('inf'):
+            dates_ordinal.append(round(predicted_date[0][0]))
+            dates.append(datetime.datetime.fromordinal(round(predicted_date[0][0])))
     return dates, dates_ordinal
 
 
