@@ -90,7 +90,14 @@ def predict_date_based_on_vaccines(linear_regressor, future_vaccine_quantities):
 
         if float(predicted_date[0][0]) != float('-inf') and float(predicted_date[0][0]) != float('inf'):
             dates_ordinal.append(round(predicted_date[0][0]))
-            dates.append(datetime.datetime.fromordinal(round(predicted_date[0][0])))
+            if round(predicted_date[0][0]) <= 0:
+                dates.append(None)
+            else:
+                try:
+                    dates.append(datetime.datetime.fromordinal(round(predicted_date[0][0])))
+                except ValueError:
+                    dates.append(None)
+
     return dates, dates_ordinal
 
 
