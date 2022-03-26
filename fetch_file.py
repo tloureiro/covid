@@ -22,8 +22,9 @@ def report_hook(count, block_size, total_size):
     sys.stdout.flush()
 
 
-local_file_path = './data/main.csv'
-remote_file_path = 'https://storage.googleapis.com/covid19-open-data/v2/main.csv'
+local_file_path = './data/aggregated.csv.gz'
+local_file_path_extracted = './data/aggregated.csv'
+remote_file_path = 'https://storage.googleapis.com/covid19-open-data/v3/aggregated.csv.gz'
 remote_file_path_vaccinations = 'https://storage.googleapis.com/covid19-open-data/v2/vaccinations.csv'
 local_file_path_vaccinations = './data/vaccinations.csv'
 utc = pytz.UTC
@@ -44,17 +45,9 @@ else:
     urllib.request.urlretrieve(remote_file_path, local_file_path, report_hook)
 
 print()
-print('Downloading vaccinations data...')
-if os.path.exists(local_file_path_vaccinations):
-    file_time = utc.localize(datetime.datetime.fromtimestamp(os.path.getmtime(local_file_path)))
-    if url_date > file_time:
-        urllib.request.urlretrieve(remote_file_path_vaccinations, local_file_path_vaccinations, report_hook)
-    else:
-        print('Nothing to download')
-        exit()
-else:
-    urllib.request.urlretrieve(remote_file_path_vaccinations, local_file_path_vaccinations, report_hook)
+print('Extracting aggregated file')
+os.system('gzip -fd ' + local_file_path)
 
-print('')
+print()
 print('Converting csv to feather...')
 exec(open('./to_feather.py').read())

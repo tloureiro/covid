@@ -120,7 +120,7 @@ import datetime
 # new_persons_vaccinated_janssen,total_persons_vaccinated_janssen,new_persons_fully_vaccinated_janssen,total_persons_fully_vaccinated_janssen,
 # new_vaccine_doses_administered_janssen,total_vaccine_doses_administered_janssen
 
-df = pd.read_csv('./data/main.csv',
+df = pd.read_csv('./data/aggregated.csv',
                  dtype={
                      'wikidata': 'string',
                      'datacommons': 'string',
@@ -136,8 +136,8 @@ df = pd.read_csv('./data/main.csv',
                      'new_deceased': pd.Int32Dtype(),
                      'new_recovered': pd.Int32Dtype(),
                      'new_tested': pd.Int32Dtype(),
-                     'total_confirmed': pd.Int32Dtype(),
-                     'total_deceased': pd.Int32Dtype(),
+                     'cumulative_confirmed': pd.Int32Dtype(),
+                     'cumulative_deceased': pd.Int32Dtype(),
                      'total_recovered': pd.Int32Dtype(),
                      'total_tested': pd.Int32Dtype(),
                      'new_hospitalized': pd.Int32Dtype(),
@@ -170,15 +170,8 @@ df = pd.read_csv('./data/main.csv',
                      'noaa_station': 'string',
                  },
                  parse_dates=['date'],
-                 usecols=['key', 'country_name', 'subregion1_name', 'subregion2_name', 'aggregation_level', 'population', 'population_age_10_19', 'population_age_20_29', 'population_age_30_39', 'population_age_40_49', 'population_age_50_59', 'population_age_60_69', 'population_age_70_79', 'population_age_80_and_older', 'date', 'new_confirmed', 'new_deceased', 'total_confirmed', 'total_deceased']
+                 usecols=['country_name', 'subregion1_name', 'subregion2_name', 'aggregation_level', 'population', 'population_age_10_19', 'population_age_20_29', 'population_age_30_39', 'population_age_40_49', 'population_age_50_59', 'population_age_60_69', 'population_age_70_79', 'population_age_80_and_older', 'date', 'new_confirmed', 'new_deceased', 'cumulative_confirmed', 'cumulative_deceased', 'cumulative_persons_fully_vaccinated', 'cumulative_vaccine_doses_administered', 'cumulative_vaccine_doses_administered_janssen', 'cumulative_persons_vaccinated']
                  )
-
-df_vaccinations = pd.read_csv('./data/vaccinations.csv',
-                 usecols=['date', 'key', 'total_persons_vaccinated', 'total_persons_fully_vaccinated', 'total_vaccine_doses_administered', 'total_vaccine_doses_administered_janssen'],
-                 parse_dates=['date'],
-                 )
-
-df = df.merge(df_vaccinations, how='left', on=['key', 'date'])
 
 df.to_feather('./data/main.feather')
 

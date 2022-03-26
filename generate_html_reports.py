@@ -62,10 +62,10 @@ def get_places():
         'date': world['date'].unique().index,
         'new_confirmed': world['new_confirmed'].sum(),
         'new_deceased': world['new_deceased'].sum(),
-        'total_confirmed': world['total_confirmed'].sum(),
+        'cumulative_confirmed': world['cumulative_confirmed'].sum(),
         'population': world['population'].sum(),
-        'total_deceased': world['total_deceased'].sum(),
-        'total_vaccine_doses_administered': world['total_vaccine_doses_administered'].sum(),
+        'cumulative_deceased': world['cumulative_deceased'].sum(),
+        'cumulative_vaccine_doses_administered': world['cumulative_vaccine_doses_administered'].sum(),
         'population_age_10_19': world['population_age_10_19'].sum(),
         'population_age_20_29': world['population_age_20_29'].sum(),
     }
@@ -78,9 +78,9 @@ def get_places():
     for place_key, value in places.items():
         places[place_key]['new_confirmed'] = places[place_key]['new_confirmed'].astype(float)
         places[place_key]['new_deceased'] = places[place_key]['new_deceased'].astype(float)
-        places[place_key]['total_confirmed'] = places[place_key]['total_confirmed'].astype(float)
+        places[place_key]['cumulative_confirmed'] = places[place_key]['cumulative_confirmed'].astype(float)
         places[place_key]['population'] = places[place_key]['population'].astype(float)
-        places[place_key]['total_deceased'] = places[place_key]['total_deceased'].astype(float)
+        places[place_key]['cumulative_deceased'] = places[place_key]['cumulative_deceased'].astype(float)
 
     return places
 
@@ -191,7 +191,7 @@ def generate_report_percentage_of_population_infected(places):
     row = 1
     for place_key, value in places.items():
         place = places[place_key]
-        place['percentage_infected_total'] = (place['total_confirmed'] / place['population']) * 100
+        place['percentage_infected_total'] = (place['cumulative_confirmed'] / place['population']) * 100
 
         fig.append_trace(go.Scatter(
             x=place['date'],
@@ -255,11 +255,11 @@ def generate_report_total_and_percentage_deceased(places):
     for place_key, value in places.items():
         place = places[place_key]
 
-        place['percentage_deceased_total'] = (place['total_deceased'] / place['population']) * 100
+        place['percentage_deceased_total'] = (place['cumulative_deceased'] / place['population']) * 100
 
         fig.add_trace(go.Scatter(
             x=place['date'],
-            y=place['total_deceased'],
+            y=place['cumulative_deceased'],
             customdata=np.dstack((place['percentage_deceased_total'])),
             hovertemplate='<b>Total Deceased: %{y}</b><br><b>Percentage Deceased: %{text:.3f}%</b>',
             text=place['percentage_deceased_total'],
@@ -296,12 +296,12 @@ def generate_ranking_reports():
     # first infections
     for key, place in places.items():
         d = {
-            'total_confirmed': place['total_confirmed'].max(),
-            'total_deceased': place['total_deceased'].max(),
+            'cumulative_confirmed': place['cumulative_confirmed'].max(),
+            'cumulative_deceased': place['cumulative_deceased'].max(),
             'population': place['population'].max(),
-            'rate_infected_%': (place['total_confirmed'].max() / place['population'].max()) * 100,
-            'rate_mortality_%': (place['total_deceased'].max() / place['population'].max()) * 100,
-            'rate_mortality_by_infected_%': (place['total_deceased'].max() / place['total_confirmed'].max()) * 100,
+            'rate_infected_%': (place['cumulative_confirmed'].max() / place['population'].max()) * 100,
+            'rate_mortality_%': (place['cumulative_deceased'].max() / place['population'].max()) * 100,
+            'rate_mortality_by_infected_%': (place['cumulative_deceased'].max() / place['cumulative_confirmed'].max()) * 100,
         }
 
         grouped_places[key] = pd.DataFrame(d)
@@ -327,15 +327,15 @@ def generate_ranking_reports():
             with tag('h2'):
                 text('Countries:')
             text('(analysis of the top 100 most populated countries)')
-            doc.asis(grouped_places['countries'].drop(['rate_mortality_%', 'total_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
+            doc.asis(grouped_places['countries'].drop(['rate_mortality_%', 'cumulative_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
             with tag('h2'):
                 text('Subregion1 (states, provinces, etc):')
             text('(analysis of the top 1000 most populated regions)')
-            doc.asis(grouped_places['sub1'].drop(['rate_mortality_%', 'total_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
+            doc.asis(grouped_places['sub1'].drop(['rate_mortality_%', 'cumulative_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
             with tag('h2'):
                 text('Subregion2 (usually cities):')
             text('(analysis of the top 1000 most populated regions)')
-            doc.asis(grouped_places['sub2'].drop(['rate_mortality_%', 'total_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
+            doc.asis(grouped_places['sub2'].drop(['rate_mortality_%', 'cumulative_deceased', 'rate_mortality_by_infected_%'], axis=1).to_html())
 
     with open('./site/highest_infection_rates_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
         writer.write(doc.getvalue())
@@ -356,15 +356,15 @@ def generate_ranking_reports():
             with tag('h2'):
                 text('Countries:')
             text('(analysis of the top 100 most populated countries)')
-            doc.asis(grouped_places['countries'].drop(['rate_infected_%', 'total_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
+            doc.asis(grouped_places['countries'].drop(['rate_infected_%', 'cumulative_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
             with tag('h2'):
                 text('Subregion1 (states, provinces, etc):')
             text('(analysis of the top 1000 most populated regions)')
-            doc.asis(grouped_places['sub1'].drop(['rate_infected_%', 'total_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
+            doc.asis(grouped_places['sub1'].drop(['rate_infected_%', 'cumulative_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
             with tag('h2'):
                 text('Subregion2 (usually cities):')
             text('(analysis of the top 1000 most populated regions)')
-            doc.asis(grouped_places['sub2'].drop(['rate_infected_%', 'total_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
+            doc.asis(grouped_places['sub2'].drop(['rate_infected_%', 'cumulative_confirmed', 'rate_mortality_by_infected_%'], axis=1).to_html())
 
     with open('./site/highest_mortality_rates_in_highly_populate_places.html', 'w', encoding='utf-8') as writer:
         writer.write(doc.getvalue())
@@ -441,7 +441,7 @@ def generate_report_vaccination_coverage(places):
         # last month only
         place = places[place_key].loc[places[place_key].date > datetime.datetime.now() - pd.to_timedelta(str(30) + 'day')]
 
-        place.dropna(subset=['total_vaccine_doses_administered'], inplace=True)
+        place.dropna(subset=['cumulative_vaccine_doses_administered'], inplace=True)
 
         if 'population_age_10_19' not in place or place['population_age_10_19'].isnull().all() or 'population_age_30_39' not in place or place['population_age_30_39'].isnull().all():
             continue
@@ -455,15 +455,15 @@ def generate_report_vaccination_coverage(places):
         # last month only
         place = places[place_key].loc[places[place_key].date > datetime.datetime.now() - pd.to_timedelta(str(30) + 'day')]
 
-        place.dropna(subset=['total_vaccine_doses_administered'], inplace=True)
+        place.dropna(subset=['cumulative_vaccine_doses_administered'], inplace=True)
 
-        if 'total_vaccine_doses_administered_janssen' not in place:
-            total_vaccine_doses_administered_janssen = 0
+        if 'cumulative_vaccine_doses_administered_janssen' not in place:
+            cumulative_vaccine_doses_administered_janssen = 0
         else:
-            total_vaccine_doses_administered_janssen = place['total_vaccine_doses_administered_janssen'].fillna(0)
+            cumulative_vaccine_doses_administered_janssen = place['cumulative_vaccine_doses_administered_janssen'].fillna(0)
 
         days_ordinal = place['date'].map(datetime.datetime.toordinal).values.reshape(-1, 1)
-        total_vaccines = (place['total_vaccine_doses_administered'] + total_vaccine_doses_administered_janssen).values.reshape(-1, 1)
+        total_vaccines = (place['cumulative_vaccine_doses_administered'] + cumulative_vaccine_doses_administered_janssen).values.reshape(-1, 1)
 
         population_above_10 = (int(place['population_age_10_19'].iloc[-1]) +  int(place['population_age_20_29'].iloc[-1]) +
                                int(place['population_age_30_39'].iloc[-1]) + int(place['population_age_40_49'].iloc[-1]) + int(place['population_age_50_59'].iloc[-1]) +
@@ -474,8 +474,8 @@ def generate_report_vaccination_coverage(places):
         population_coverage_milestones = [0, (population * 0.1), (population * 0.2), (population * 0.3), (population * 0.4), (population * 0.5), (population * 0.6), (population * 0.7), (population * 0.8), (population * 0.9), population]
         population_coverage_milestones_labels = ['0%', '10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%']
 
-        total_persons_vaccinated = place['total_persons_vaccinated'].values.reshape(-1, 1)
-        total_persons_fully_vaccinated = place['total_persons_fully_vaccinated'].values.reshape(-1, 1)
+        cumulative_persons_vaccinated = place['cumulative_persons_vaccinated'].values.reshape(-1, 1)
+        cumulative_persons_fully_vaccinated = place['cumulative_persons_fully_vaccinated'].values.reshape(-1, 1)
 
         # predicting vaccination for 2 doses
         linear_regressor = LinearRegression()
@@ -518,7 +518,7 @@ def generate_report_vaccination_coverage(places):
 
         fig.add_trace(
             go.Scatter(x=days_ordinal.flatten().tolist(),
-                       y=total_persons_fully_vaccinated.flatten().tolist(),
+                       y=cumulative_persons_fully_vaccinated.flatten().tolist(),
                        name='Total Persons Fully Vaccinated',
                        mode="lines",
                        showlegend=True),
@@ -526,7 +526,7 @@ def generate_report_vaccination_coverage(places):
 
         fig.add_trace(
             go.Scatter(x=days_ordinal.flatten().tolist(),
-                       y=total_persons_vaccinated.flatten().tolist(),
+                       y=cumulative_persons_vaccinated.flatten().tolist(),
                        name='Total Persons Vaccinated',
                        mode="lines",showlegend=True),
         )
